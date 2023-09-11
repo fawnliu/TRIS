@@ -3,8 +3,8 @@ import torch
 import os
 import torch.nn.functional as F
 
-# from model.model_stage1 import TRIS 
-from model.model_stage2 import TRIS 
+from model.model_stage1 import TRIS 
+# from model.model_stage2 import TRIS 
 
 import torch.distributed as dist
 
