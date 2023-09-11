@@ -8,7 +8,7 @@ Official PyTorch implementation of **TRIS**, from the following paper:
 
 --- 
 <p align="left">
-<img src="figs/pipeline.pdf"  class="center">
+<img src="figs/pipeline.png"  class="center">
 </p>
 
 

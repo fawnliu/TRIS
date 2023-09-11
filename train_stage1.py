@@ -238,39 +238,39 @@ def main(args):
             writer.add_scalar('test/hit', hit, epoch)
             writer.add_scalar('test/oIoU', oIoU, epoch)
     
-    ############ validate on the train dataset
-    print()
-    print()
-    last_trainset = ReferDataset(refer_data_root=args.refer_data_root,
-                            dataset=args.dataset,
-                            split='train',
-                            splitBy=args.splitBy,
-                            image_transforms=get_transform(args.size, train=False),
-                            eval_mode=True,
-                            size=args.size,
-                            bert_tokenizer=args.bert_tokenizer)
-    val_train_loader = DataLoader(last_trainset,
-                            batch_size=1,
-                            num_workers=2,
-                            pin_memory=True, 
-                            sampler=val_sampler)
-    print('loading ', best['path'])
-    load_pretrained_checkpoint(best['path'], model_without_ddp)
-    oIoU_1, mIoU_1, hit_1 = validate(args, val_train_loader, model, local_rank)
-    print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
-    print(best)
-    # # ############ validate on the train dataset, with prms strategy 
-    print()
-    print()
-    print('--------same sents--------')
-    print()
-    from validate import validate_same_sentence 
-    oIoU, mIoU, hit = validate_same_sentence(args, val_train_loader, model, local_rank, save_cam=False)
-    print() 
-    print('Validat on the train split (same sents): ', oIoU, mIoU, hit)
-    print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
-    print(best)
-    # # ##################
+    # ############ validate on the train dataset
+    # print()
+    # print()
+    # last_trainset = ReferDataset(refer_data_root=args.refer_data_root,
+    #                         dataset=args.dataset,
+    #                         split='train',
+    #                         splitBy=args.splitBy,
+    #                         image_transforms=get_transform(args.size, train=False),
+    #                         eval_mode=True,
+    #                         size=args.size,
+    #                         bert_tokenizer=args.bert_tokenizer)
+    # val_train_loader = DataLoader(last_trainset,
+    #                         batch_size=1,
+    #                         num_workers=2,
+    #                         pin_memory=True, 
+    #                         sampler=val_sampler)
+    # print('loading ', best['path'])
+    # load_pretrained_checkpoint(best['path'], model_without_ddp)
+    # oIoU_1, mIoU_1, hit_1 = validate(args, val_train_loader, model, local_rank)
+    # print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
+    # print(best)
+    # # # ############ validate on the train dataset, with prms strategy 
+    # print()
+    # print()
+    # print('--------same sents--------')
+    # print()
+    # from validate import validate_same_sentence 
+    # oIoU, mIoU, hit = validate_same_sentence(args, val_train_loader, model, local_rank, save_cam=False)
+    # print() 
+    # print('Validat on the train split (same sents): ', oIoU, mIoU, hit)
+    # print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
+    # print(best)
+    # # # ##################
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
