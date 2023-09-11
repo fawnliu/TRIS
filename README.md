@@ -67,31 +67,11 @@ mkdir ./weights
 3. Shell for `G-Ref(UMD)` evaluation. Replace `refcocog` with `refcoco`, and `umd` with `unc` for RefCOCO dataset evaluation. 
 
 ```bash
-python validate.py \
-    --batch_size 1 \
-    --size 320 \
-    --dataset refcocog \
-    --splitBy umd \
-    --test_split val \
-    --max_query_len 20 \
-    --dataset_root ./data \
-    --output weights/ \
-    --resume --pretrain  stage1_refcocog_umd.pth \
-    --eval 
+python validate.py  --batch_size 1  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --max_query_len 20  --dataset_root ./data  --output weights/  --resume --pretrain  stage1_refcocog_umd.pth  --eval 
 ```
 For ReferIt dataset:
 ```bash
-python validate_referit.py \
-    --batch_size 1 \
-    --size 320 \
-    --dataset referit \
-    --test_split test \
-    --backbone clip-RN50 \
-    --max_query_len 20 \
-    --dataset_root ./data/referit/ \
-    --output weights/ \
-    --resume --pretrain stage1_referit.pth \
-    --eval 
+python validate_referit.py   --batch_size 1   --size 320   --dataset referit   --test_split test   --backbone clip-RN50   --max_query_len 20   --dataset_root ./data/referit/   --output weights/   --resume --pretrain stage1_referit.pth   --eval 
 ```
 
 
@@ -100,17 +80,7 @@ python validate_referit.py \
 
 1. Train Step1 network on `Gref (UMD)` dataset.
 ```bash
-python train_stage1.py \
-    --batch_size 48 \
-    --size 320 \
-    --dataset refcocog \
-    --splitBy umd \
-    --test_split val \
-    --epoch 15 \
-    --backbone clip-RN50 \
-    --max_query_len 20 \
-    --negative_samples 6 \
-    --output ./weights/refcocog_umd \
+python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 6  --output ./weights/refcocog_umd 
 ```
 
 2. Validate and generate response maps on the  Gref (UMD) `train` set, based on the proposed PRMS strategy.
@@ -119,18 +89,7 @@ python train_stage1.py \
 ## path to save response maps and pseudo labels
 dir=./output
 
-python validate.py \
-    --batch_size 1 \
-    --size 320 \
-    --dataset refcocog \
-    --splitBy umd \
-    --test_split train \
-    --max_query_len 20 \
-    --output ./weights/refcocog_umd \
-    --resume --pretrain  ckpt.pth \
-    --cam_save_dir $dir/refcocog_umd/cam/ \
-    --name_save_dir $dir/refcocog_umd  \
-    --eval --prms 
+python validate.py   --batch_size 1   --size 320   --dataset refcocog   --splitBy umd   --test_split train   --max_query_len 20   --output ./weights/refcocog_umd   --resume --pretrain  ckpt.pth   --cam_save_dir $dir/refcocog_umd/cam/   --name_save_dir $dir/refcocog_umd  --eval --prms 
 ```
 
 3. Train IRNet and generate pseudo masks.
@@ -139,18 +98,7 @@ python validate.py \
 cd IRNet
 
 dir=../output
-CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py \
-    --cam_out_dir $dir/refcocog_umd/cam \
-    --ir_label_out_dir $dir/refcocog_umd/ir_label \
-    --ins_seg_out_dir $dir/refcocog_umd/ins_seg \
-    --train_list $dir/refcocog_umd/refcocog_train_names.json \
-    --cam_eval_thres 0.15 \
-    --work_space output_refer/refcocog_umd \
-    --num_workers 8 \
-    --irn_batch_size 96 \
-    --cam_to_ir_label_pass True \
-    --train_irn_pass True \
-    --make_ins_seg_pass True 
+CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py   --cam_out_dir $dir/refcocog_umd/cam   --ir_label_out_dir $dir/refcocog_umd/ir_label   --ins_seg_out_dir $dir/refcocog_umd/ins_seg   --train_list $dir/refcocog_umd/refcocog_train_names.json   --cam_eval_thres 0.15   --work_space output_refer/refcocog_umd   --num_workers 8   --irn_batch_size 96   --cam_to_ir_label_pass True   --train_irn_pass True   --make_ins_seg_pass True 
 ```
 
 4. Train Step2 network using the generated pseudo masks in `output/refcocog_umd/ins_seg` (pseudo_path). 
@@ -158,18 +106,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py \
 ```bash
 cd ../
 
-python train_stage2.py \
-    --batch_size 48 \
-    --size 320 \
-    --dataset refcocog \
-    --splitBy umd \
-    --test_split val \
-    --bert_tokenizer clip \
-    --backbone clip-RN50 \
-    --max_query_len 20 \
-    --epoch 15 \
-    --pseudo_path output/refcocog_umd/ins_seg \
-    --output ./weights/stage2/pseudo_refcocog_umd
+python train_stage2.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --bert_tokenizer clip  --backbone clip-RN50  --max_query_len 20  --epoch 15  --pseudo_path output/refcocog_umd/ins_seg  --output ./weights/stage2/pseudo_refcocog_umd
 ```
 
 ## Acknowledgement
