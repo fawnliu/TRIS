@@ -81,7 +81,6 @@ def get_parser():
 
     parser.add_argument('--wr', default=5e-4, type=float)
 
-
     parser.add_argument("--backbone", default="clip-RN50", type=str)
     parser.add_argument('--hidden_dim', default=1024, type=int)
 

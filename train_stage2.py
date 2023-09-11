@@ -400,7 +400,6 @@ if __name__=="__main__":
     if args.distributed:
         torch.distributed.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank)
         torch.distributed.barrier()
-    # 只在 rank 0 显示
     # cfg=config.get_config(args)
     if args.distributed:
         logger = create_logger(dist_rank=dist.get_rank())
