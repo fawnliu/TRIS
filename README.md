@@ -159,7 +159,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py \
 cd ../
 
 python train_stage2.py \
-    --batch_size 24 \
+    --batch_size 48 \
     --size 320 \
     --dataset refcocog \
     --splitBy umd \
