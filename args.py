@@ -56,7 +56,7 @@ def get_parser():
 
     # Save check point 
     parser.add_argument("--output",default=None,type=str,help="output dir for checkpoint")
-    parser.add_argument("--board_folder",default=None,type=str,help="tensorboard")
+    parser.add_argument("--board_folder",default='./output/board',type=str,help="tensorboard")
     parser.add_argument("--vis_out", default=None, type=str)
     parser.add_argument("--eval_vis_out", default=None, type=str)
 
