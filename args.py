@@ -10,7 +10,7 @@ def get_parser():
     parser.add_argument('--dataset', default='refcoco', 
                     help='choose one of the following datasets: refcoco, refcoco+, refcocog, refcocog_umd')
     # parser.add_argument('--dataset_root',default='./data',help='split to run test')
-    parser.add_argument("--max_query_len",default=77,type=int)
+    parser.add_argument("--max_query_len",default=20,type=int)
     parser.add_argument('--negative_samples', default=0, type=int)
     parser.add_argument('--positive_samples', default=1, type=int)
     # BERT 
@@ -91,6 +91,9 @@ def get_parser():
 
     parser.add_argument("--mode", default='clip', type=str)
     
+    # demo 
+    parser.add_argument("--img",default=None,type=str)
+    parser.add_argument("--text",default=None,type=str)
 
     return parser
     

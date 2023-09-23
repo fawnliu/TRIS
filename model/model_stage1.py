@@ -41,7 +41,7 @@ class TRIS(nn.Module):
             self.attn_fusion = bilateral_prompt(args.hidden_dim, lan_chans=args.hidden_dim) 
 
     def trainable_parameters(self):
-        newly_add_params = [self.vis_project, self.lan_project]
+        newly_add_params = [self.vis_project, self.lan_project, self.logit_scale]
         try:
             newly_add_params.append(self.attn_fusion)
         except:
@@ -57,11 +57,11 @@ class TRIS(nn.Module):
         _, hidden = self.backbone.encode_text(word_id) 
         c1, c2, c3, c4, _ = self.backbone.encode_image(x) 
 
-        lan = self.lan_project(hidden)  # b,512
+        lan = self.lan_project(hidden)  
 
         vis = self.vis_project(c4.float())
         h_, w_ = vis.shape[2:]
-        vis_trans = vis.flatten(2).transpose(1,2)  # b,100,512
+        vis_trans = vis.flatten(2).transpose(1,2)  
         lan = lan.unsqueeze(0).repeat(B, 1 ,1)
 
         norm_vis = vis_trans / vis_trans.norm(dim=-1, keepdim=True)
@@ -70,14 +70,12 @@ class TRIS(nn.Module):
         if self.args.attn_multi > 0:
             new_vis, new_lan = self.attn_fusion(norm_vis.permute(0, 2, 1).reshape(B, -1, h_, w_), norm_lan.transpose(1, 2))
             norm_vis = new_vis.flatten(2).transpose(1, 2) * 0.1 + norm_vis
-            norm_lan = new_lan * 0.1 + norm_lan 
-        ######### 
+            norm_lan = new_lan * 0.1 + norm_lan  
         score = torch.bmm(norm_vis, norm_lan.transpose(1,2))
 
         logit_scale = self.logit_scale.exp()
         score = logit_scale * score 
 
-        ############## GWP 
         if self.training:
             score_t = score.transpose(1, 2).reshape(B, -1, h_, w_)
             bg = torch.ones_like(score_t[:,:1])
@@ -85,7 +83,6 @@ class TRIS(nn.Module):
             
             bs, c, h, w = score_t.size()
 
-            # softmax or sigmoid for SPA / MPA
             masks = F.softmax(score_t, dim=1) # default
             # masks = F.sigmoid(score_t) 
 
@@ -93,17 +90,8 @@ class TRIS(nn.Module):
             masks_ = masks.view(bs, c, -1) 
 
             # classification loss
-            if self.args.pooling == 'gmp_gap':
-                cls_10 = features.mean(-1)
-                cls_11 = torch.max(features, dim=-1).values
-            elif self.args.pooling == 'gmp':
-                cls_10 = 0 
-                cls_11 = torch.max(features, dim=-1).values
-            elif self.args.pooling == 'gap':
-                cls_10 = features.mean(-1)
-                cls_11 = 0 
-            else:
-                print('not support this pooling strategy')
+            cls_10 = features.mean(-1)
+            cls_11 = torch.max(features, dim=-1).values
             cls_1 = cls_10 + cls_11 
 
             # # focal penalty loss
@@ -116,18 +104,15 @@ class TRIS(nn.Module):
             masks_ = masks_[:, 1:]
             labels = torch.eye(bs).to(x.device)
             cls_fg = (masks_.mean(-1) * labels).sum(-1) / labels.sum(-1)
-        ########################################
+
         masks_out = []
-        # new_h = int(np.sqrt(score.shape[1]))
         for i in range(B):
             masks_out.append(score[i,:,i].view(1, h_, w_))
         masks_out = torch.stack(masks_out, dim=0)
         seg_final_out = Upsample(masks_out, img_size)
-        ########################################
-        ce_loss = torch.tensor(0).cuda() 
 
         if self.training:
-            return cls_out, cls_fg, F.relu(seg_final_out), torch.sigmoid(seg_final_out), ce_loss, logit_scale
+            return cls_out, cls_fg, F.relu(seg_final_out), torch.sigmoid(seg_final_out), logit_scale
         else:
             return F.relu(seg_final_out) 
 
@@ -143,7 +128,7 @@ if __name__ == '__main__':
     parse=get_parser()
     args=parse.parse_args()
 
-    m = LVAT(args).cuda()
+    m = TRIS(args).cuda()
     x = torch.randn(4, 3, 320, 320)
     x = torch.tensor(x, dtype=torch.float32)
     word_id = torch.ones(4, 20)

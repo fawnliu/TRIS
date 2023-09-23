@@ -41,9 +41,9 @@ class TRIS(nn.Module):
 
         self.clip = ('clip' in args.bert_tokenizer)
 
-        print('bert_tokenizer = ', args.bert_tokenizer)
-        print('clip = ', self.clip)
-        print(args.backbone)
+        # print('bert_tokenizer = ', args.bert_tokenizer)
+        # print('clip = ', self.clip)
+        # print(args.backbone)
         
         type = args.backbone.split('-')[-1]
 
@@ -109,7 +109,6 @@ class TRIS(nn.Module):
         word_embedding, hidden = self.backbone.encode_text(word_id) 
         # c1, c2, c3, c4 = self.backbone.encode_image(x)  
         c1, c2, c3, c4, attn_out = self.backbone.encode_image(x)  
-        # vis_global, vis_local = attn_out[0], attn_out[1] 
 
         lan = word_embedding.permute(0, 2, 1)  # [N, T, C] -> [N, C, T]
 

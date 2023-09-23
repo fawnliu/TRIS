@@ -68,12 +68,9 @@ class ReferDataset(data.Dataset):
         self.size = size 
         self.pseudo_path = pseudo_path
 
-        print('='*50)
         print('Preparing dataset .....')
         print(dataset, split)
         print(refer_data_root, dataset, splitBy) 
-        print('negative_samples = ', negative_samples)
-        print('positive_samples = ', positive_samples)
         print(f'pseudo_path = {pseudo_path}')
 
         self.max_tokens=max_tokens
@@ -125,7 +122,6 @@ class ReferDataset(data.Dataset):
     def __len__(self):
         return len(self.ref_ids)
     
-
     def __getitem__(self,index):
         this_ref_id=self.ref_ids[index]
         this_img_id=self.refer.getImgIds(this_ref_id)

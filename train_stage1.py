@@ -308,7 +308,7 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
 
         labels = torch.eye(B).cuda()  
 
-        cls, _, seg_final_out, sig_out, _, _ = model(img, word_ids)  
+        cls, _, seg_final_out, sig_out,  _ = model(img, word_ids)  
 
         if img.shape[2] != clip_input_size:
             cam_224 = F.interpolate(sig_out, (clip_input_size, clip_input_size), mode='bilinear', align_corners=True)
@@ -339,11 +339,9 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
                     neg_loss = neg_loss + (-(torch.log(1 - neg_score)).mean())
                 neg_loss /= B 
             except:
-                print(neg_phrases.shape, word_ids.shape, '----')
                 import pdb 
                 pdb.set_trace()
 
-        # ###############
         cls_loss = F.multilabel_soft_margin_loss(cls, labels)
         
         l1 = fg_loss
@@ -352,8 +350,6 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
 
         loss = l1 * args.w1 + l2 * args.w2 + l3 * args.w3
 
-        # Synchronizes all processes.
-        # all process statistic
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
