@@ -99,6 +99,7 @@ class TRIS(nn.Module):
 
             # # adding the losses together
             cls_out = cls_1[:, 1:] + cls_2[:, 1:]
+            # print(cls_out)
 
             # foreground stats
             masks_ = masks_[:, 1:]

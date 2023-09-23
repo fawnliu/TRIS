@@ -51,6 +51,8 @@ conda env create -f environment.yml
 If you want to generate referit annotations by yourself, refer to [MG](https://github.com/hassanhub/MultiGrounding/tree/master/data) for more details.
 
 
+
+
 ## Evaluation
 
 1. Create the `./weights` directory 
@@ -74,13 +76,17 @@ For ReferIt dataset:
 python validate_referit.py   --batch_size 1   --size 320   --dataset referit   --test_split test   --backbone clip-RN50   --max_query_len 20   --dataset_root ./data/referit/   --output weights/   --resume --pretrain stage1_referit.pth   --eval 
 ```
 
-
+## Demo
+The output of the demo is saved in `./figs/`.
+```bash
+python demo.py  --img figs/demo.png  --text 'man on the right'
+```
 
 ## Training
 
 1. Train Step1 network on `Gref (UMD)` dataset.
 ```bash
-python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 6  --output ./weights/refcocog_umd 
+python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 6  --output ./weights/refcocog_umd --board_folder ./output/board 
 ```
 
 2. Validate and generate response maps on the  Gref (UMD) `train` set, based on the proposed PRMS strategy.

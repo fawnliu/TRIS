@@ -56,7 +56,7 @@ def get_parser():
 
     # Save check point 
     parser.add_argument("--output",default=None,type=str,help="output dir for checkpoint")
-    parser.add_argument("--board_folder",default='./output/board',type=str,help="tensorboard")
+    parser.add_argument("--board_folder",default=None,type=str,help="tensorboard")
     parser.add_argument("--vis_out", default=None, type=str)
     parser.add_argument("--eval_vis_out", default=None, type=str)
 
@@ -64,7 +64,7 @@ def get_parser():
 
     # Distributed training parameters
     parser.add_argument("--distributed",action="store_true", default=False, help="start from a check point")
-    parser.add_argument("--world-size", default=2, type=int, help="number of distributed processes")
+    parser.add_argument("--world-size", default=1, type=int, help="number of distributed processes")
     parser.add_argument("--dist-url", default="env://", help="url used to set up distributed training")
     parser.add_argument("--local_rank",default=0,help="local rank") 
 

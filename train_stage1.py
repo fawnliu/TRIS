@@ -233,7 +233,7 @@ def main(args):
             best['hit'] = hit 
         print(best)
 
-        if local_rank == 0:
+        if local_rank == 0 and args.board_folder is not None:
             writer.add_scalar('test/mIoU', val_acc, epoch)
             writer.add_scalar('test/hit', hit, epoch)
             writer.add_scalar('test/oIoU', oIoU, epoch)
@@ -358,7 +358,7 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
 
         torch.cuda.synchronize()
 
-        if local_rank == 0:
+        if local_rank == 0 and args.board_folder is not None:
             lr = optimizer.param_groups[0]['lr']
             writer.add_scalar('optim/lr', lr, iteration)
             writer.add_scalar('train/loss', loss.data.cpu().numpy(), iteration)
