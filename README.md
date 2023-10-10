@@ -123,10 +123,11 @@ This repository was based on [LAVT](https://github.com/yz93/LAVT-RIS), [WWbL](ht
 ## Citation
 If you find this repository helpful, please consider citing:
 ```bibtex
-@article{liu2023referring,
+@inproceedings{liu2023referring,
   title={Referring Image Segmentation Using Text Supervision},
   author={Liu, Fang and Liu, Yuhao and Kong, Yuqiu and Xu, Ke and Zhang, Lihe and Yin, Baocai and Hancke, Gerhard and Lau, Rynson},
-  journal={arXiv preprint arXiv:2308.14575},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
+  pages={22124--22134},
   year={2023}
 }
 ```
