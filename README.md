@@ -36,7 +36,7 @@ conda env create -f environment.yml
 
 ### ReferIt
 1. Download parsed annotations from [our link](https://github.com/fawnliu/storage/releases/download/v1.0.2/referit_annotations.zip).
-2. Download `saiapr_tc-12` images from [referit](http://bvisionweb1.cs.unc.edu/licheng/referit/data/images/saiapr_tc-12.zip).
+2. Download `saiapr_tc-12` images from [referit](https://web.archive.org/web/20220515000000/http://bvisionweb1.cs.unc.edu/licheng/referit/data/images/saiapr_tc-12.zip).
 
 ```
 ├── data/
