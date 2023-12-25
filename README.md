@@ -86,7 +86,7 @@ python demo.py  --img figs/demo.png  --text 'man on the right'
 
 1. Train Step1 network on `Gref (UMD)` dataset.
 ```bash
-python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 6  --output ./weights/refcocog_umd --board_folder ./output/board 
+python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 3  --output ./weights/refcocog_umd --board_folder ./output/board 
 ```
 
 2. Validate and generate response maps on the  Gref (UMD) `train` set, based on the proposed PRMS strategy.
