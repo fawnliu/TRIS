@@ -163,8 +163,8 @@ def main(args):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tmp_max_len = args.max_query_len
-    clip_model, _ = clip.load("../clip_weights/ViT-B-32.pt", device=device, jit=False, txt_length=tmp_max_len)
-    # clip_model, _ = clip.load("ViT-B-32", device=device, jit=False, txt_length=tmp_max_len)
+    # clip_model, _ = clip.load("../clip_weights/ViT-B-32.pt", device=device, jit=False, txt_length=tmp_max_len)
+    clip_model, _ = clip.load("ViT-B-32", device=device, jit=False, txt_length=tmp_max_len)
     clip_model.eval()
 
     train_time = 0
