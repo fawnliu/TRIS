@@ -1,18 +1,9 @@
 import os
 import torch 
-import os
 import torch.nn.functional as F
-
-from model.model_stage1 import TRIS 
-# from model.model_stage2 import TRIS 
-
 import torch.distributed as dist
-
-from dataset.ReferDataset import ReferDataset 
-
 from dataset.transform import get_transform
 from args import get_parser
-# import config 
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader
 from utils.util import AverageMeter, load_checkpoint
@@ -20,26 +11,17 @@ import time
 from logger import create_logger
 import datetime
 import numpy  as np 
-import cv2 
 from utils.util import compute_mask_IU 
 import torch.nn as nn 
-from matplotlib import pyplot as plt
 from tensorboardX import SummaryWriter
 from utils.box_eval_utils import eval_box_iou, generate_bbox, eval_box_acc
+import CLIP.clip as clip 
+import json 
 
-# --------------------- set random seed -------------------------------------------------
-import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
-def setup_seed(seed):
-    import random
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.backends.cudnn.deterministic = True
+from dataset.ReferDataset import ReferDataset 
 
-setup_seed(1234)
-# -------------------------------------------------------------------------
+from model.model_stage1 import TRIS 
+# from model.model_stage2 import TRIS 
 
 
 def main(args):
@@ -120,14 +102,6 @@ def main(args):
             print(f'Testing time:  {str(datetime.timedelta(seconds=int(all_t)))}')
             # return
 
-    # # ########
-    # oIoU1, mIoU1, hit1 = validate_same_sentence(args, val_loader, model, local_rank)
-    # print('same sents: ', oIoU1, mIoU1, hit1)
-    # print(oIoU, mIoU, hit)
-    # # ########
-
-
-import json 
 
 def isCorrectHit(bbox_annot, heatmap, gt_mask=None):
     max_loc = np.unravel_index(np.argmax(heatmap, axis=None), heatmap.shape)
@@ -142,7 +116,6 @@ def isCorrectHit(bbox_annot, heatmap, gt_mask=None):
             return 1, max_loc, hitm
     return 0, max_loc, hitm 
 
-import CLIP.clip as clip 
 
 def get_scores(clip_model, fg_224_eval, word_id):
     image_features = clip_model.encode_image(fg_224_eval)  # [N1, C]
@@ -154,11 +127,14 @@ def get_scores(clip_model, fg_224_eval, word_id):
     return logits_per_image 
 
 
-
 @torch.no_grad()
 def validate(args, data_loader, model, local_rank=0, visualize=False, logger=None, save_cam=False):
     num_steps = len(data_loader)
     model.eval()
+
+    print('------------------------------')
+    print('Starting validation without PRMS')
+    print('------------------------------')
 
     if save_cam:
         os.makedirs(args.name_save_dir, exist_ok=True)
@@ -277,6 +253,10 @@ def validate(args, data_loader, model, local_rank=0, visualize=False, logger=Non
 def validate_same_sentence(args, data_loader, model, local_rank=0, visualize=False, logger=None, save_cam=False):
     num_steps = len(data_loader)
     model.eval()
+
+    print('------------------------------')
+    print('Starting validation with PRMS')
+    print('------------------------------')
 
     save_cam = args.save_cam 
 

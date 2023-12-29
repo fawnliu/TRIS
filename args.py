@@ -1,7 +1,5 @@
 import argparse
 
-
-
 def get_parser():
     parser=argparse.ArgumentParser(
         description="Referring Segmentation codebase"
@@ -16,7 +14,7 @@ def get_parser():
     # BERT 
     parser.add_argument('--bert_tokenizer',  default='clip')
     # REFER
-    parser.add_argument('--refer_data_root', default='./data/', help='REFER dataset root directory')
+    parser.add_argument('--refer_data_root', default='../../data/', help='REFER dataset root directory')
     parser.add_argument('--splitBy', default='unc', help='split By')
     parser.add_argument('--spilt',default='val',help='split to run test')
 
@@ -72,9 +70,11 @@ def get_parser():
     parser.add_argument('--attn_multi', default=0.1, type=float)
     parser.add_argument('--attn_multi_vis', default=0.1, type=float)
     parser.add_argument('--attn_multi_text', default=0.1, type=float)
-    parser.add_argument('--w1', default=2, type=float)
-    parser.add_argument('--w2', default=1, type=float)
-    parser.add_argument('--w3', default=5, type=float)
+    parser.add_argument('--w1', default=1, type=float)
+    parser.add_argument('--w2', default=0, type=float)
+    parser.add_argument('--w3', default=0, type=float)
+    parser.add_argument('--w4', default=5, type=float)
+    parser.add_argument('--w5', default=2, type=float)
 
     parser.add_argument('--FOCAL_P', default=3, type=float)
     parser.add_argument('--FOCAL_LAMBDA', default=0.01, type=float)

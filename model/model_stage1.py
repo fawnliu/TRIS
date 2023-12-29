@@ -26,7 +26,8 @@ class TRIS(nn.Module):
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
         type = args.backbone.split('-')[-1]
-        clip_model, _ = clip.load(type, device=device, jit=False, txt_length=args.max_query_len)
+        # clip_model, _ = clip.load(type, device=device, jit=False, txt_length=args.max_query_len)
+        clip_model, _ = clip.load('../clip_weights/RN50.pt', device=device, jit=False, txt_length=args.max_query_len)
         clip_model = clip_model.float() 
 
         if 'clip-RN' in args.backbone:
@@ -138,4 +139,3 @@ if __name__ == '__main__':
 
     output = m(x.cuda(), word_id.cuda(), att_mask.cuda())
     print('success !!!')
-

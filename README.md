@@ -69,27 +69,40 @@ mkdir ./weights
 3. Shell for `G-Ref(UMD)` evaluation. Replace `refcocog` with `refcoco`, and `umd` with `unc` for RefCOCO dataset evaluation. 
 
 ```bash
+bash scripts/validate_stage1.sh
+```
+
+<!-- ```bash
 python validate.py  --batch_size 1  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --max_query_len 20  --dataset_root ./data  --output weights/  --resume --pretrain  stage1_refcocog_umd.pth  --eval 
 ```
 For ReferIt dataset:
 ```bash
 python validate_referit.py   --batch_size 1   --size 320   --dataset referit   --test_split test   --backbone clip-RN50   --max_query_len 20   --dataset_root ./data/referit/   --output weights/   --resume --pretrain stage1_referit.pth   --eval 
-```
+``` -->
 
 ## Demo
 The output of the demo is saved in `./figs/`.
 ```bash
 python demo.py  --img figs/demo.png  --text 'man on the right'
 ```
+<p align="left">
+  <img src="figs/demo.png" style="width: 200px; height: auto; ">
+  <img src="figs/demo_(man on the right).png" style="width: 200px; height: auto;">
+</p>
+
 
 ## Training
 
 1. Train Step1 network on `Gref (UMD)` dataset.
 ```bash
-python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 3  --output ./weights/refcocog_umd --board_folder ./output/board 
+bash scripts/train_stage1.sh
 ```
+<!-- ```bash
+python train_stage1.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --epoch 15  --backbone clip-RN50  --max_query_len 20  --negative_samples 3  --output ./weights/refcocog_umd --board_folder ./output/board 
+``` -->
 
-2. Validate and generate response maps on the  Gref (UMD) `train` set, based on the proposed PRMS strategy.
+2. Validate and generate response maps on the  Gref (UMD) `train` set, based on the proposed PRMS strategy (`--prms`). 
+The response maps are saved in `./output/refcocog_umd/cam/` indicated by the args `--cam_save_dir`.
 
 ```bash
 ## path to save response maps and pseudo labels
@@ -107,7 +120,7 @@ dir=../output
 CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py   --cam_out_dir $dir/refcocog_umd/cam   --ir_label_out_dir $dir/refcocog_umd/ir_label   --ins_seg_out_dir $dir/refcocog_umd/ins_seg   --train_list $dir/refcocog_umd/refcocog_train_names.json   --cam_eval_thres 0.15   --work_space output_refer/refcocog_umd   --num_workers 8   --irn_batch_size 96   --cam_to_ir_label_pass True   --train_irn_pass True   --make_ins_seg_pass True 
 ```
 
-4. Train Step2 network using the generated pseudo masks in `output/refcocog_umd/ins_seg` (pseudo_path). 
+4. Train Step2 network using the generated pseudo masks in `output/refcocog_umd/ins_seg` indicated by the args `--pseudo_path`. 
 
 ```bash
 cd ../

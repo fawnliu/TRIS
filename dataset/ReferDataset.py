@@ -68,7 +68,7 @@ class ReferDataset(data.Dataset):
         self.size = size 
         self.pseudo_path = pseudo_path
 
-        print('Preparing dataset .....')
+        print('\nPreparing dataset .....')
         print(dataset, split)
         print(refer_data_root, dataset, splitBy) 
         print(f'pseudo_path = {pseudo_path}')

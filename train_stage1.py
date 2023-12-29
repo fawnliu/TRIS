@@ -1,34 +1,34 @@
+from cProfile import label
 import os
+from sched import scheduler
+import sched
+from typing import IO
 # os.environ['CUDA_ENABLE_DEVICES'] = '2,3'
+
 import torch 
+import os
 import torch.nn.functional as F
-
-from model.model_stage1 import TRIS
-
 import torch.distributed as dist
 from torch.optim import AdamW
-from dataset.ReferDataset import ReferDataset 
-from validate import validate 
 from dataset.transform import get_transform
 from args import get_parser
-# import config 
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data import DataLoader
-from utils.poly_lr_decay import PolynomialLRDecay
-from utils.util import AverageMeter, load_checkpoint,reduce_tensor, save_checkpoint, load_pretrained_checkpoint
+from utils.util import AverageMeter, load_checkpoint, save_checkpoint, load_pretrained_checkpoint
 import time 
 from logger import create_logger
 import datetime
-import random 
 import numpy  as np 
-import cv2 
-from utils.util import compute_mask_IU 
 import torch.nn as nn 
 from tensorboardX import SummaryWriter
 import CLIP.clip as clip 
 import torchvision 
 
-# --------------------- set random seed -------------------------------------------------
+from model.model_stage1 import TRIS 
+from dataset.ReferDataset import ReferDataset 
+from validate import validate 
+
+
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 def setup_seed(seed):
@@ -38,9 +38,7 @@ def setup_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
-
 setup_seed(1234)
-# -------------------------------------------------------------------------
 
 
 def main(args):
@@ -50,7 +48,6 @@ def main(args):
     else:
         local_rank = 0
 
-    # build module
     model = TRIS(args)
     try:
         param_groups = model.trainable_parameters()
@@ -59,12 +56,10 @@ def main(args):
         param_groups = None 
         print('no param goups...')
         print() 
-
     if args.distributed:
         model.cuda(local_rank)
     else:
         model.cuda() 
-    
     # #################
     # for param in model.backbone.parameters():
     #     param.require_grad = False 
@@ -91,7 +86,8 @@ def main(args):
                                 split='train',
                                 size=args.size,
                                 max_tokens=args.max_query_len,
-                                image_transforms=get_transform(args.size, train=True),
+                                image_transforms=get_transform(args.size, 
+                                                    train=True),
                                 eval_mode=args.eval,
                                 negative_samples=args.negative_samples,
                                 positive_samples=args.positive_samples)
@@ -135,28 +131,22 @@ def main(args):
                             shuffle=False))
 
     if param_groups is not None:
+        print('param_groups is NOne !')
         optimizer = AdamW([
             {'params': param_groups[0], 'lr': args.lr * args.lr_multi, 'weight_decay': args.weight_decay},
             {'params': param_groups[1], 'lr': args.lr, 'weight_decay': args.weight_decay},
         ], lr=args.lr, weight_decay=args.weight_decay)
     else:
-        print('param_groups is None !')
         optimizer = AdamW(params=model.parameters(), 
                       lr=args.lr, 
                       weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer,
                         lambda x: (1 - x / (len(train_loader) * args.epoch)) ** 0.9)
-
-    print()
-    print(optimizer)
-    print(scheduler)
-    print()
     
     if args.resume:
         if args.pretrain is not None:
             load_checkpoint(args, model_without_ddp, optimizer, scheduler, logger)  #####
         if args.eval:
-            # validate(args,val_loader,model,local_rank)
             st = time.time()
             val_acc, testA_acc, testB_acc = 0, 0, 0
             for i, val_loader in enumerate(val_loaders):
@@ -169,19 +159,13 @@ def main(args):
             print(f'Testing time:  {str(datetime.timedelta(seconds=int(all_t)))}')
             return
     
-    # load pretrained model from vg 
-    if args.pretrained_checkpoint is not None:
-        print('loading ', args.pretrained_checkpoint)
-        load_pretrained_checkpoint(args.pretrained_checkpoint, model_without_ddp)
+    logger.info("\nStart training")
 
-    logger.info("Start training")
-
-    ###############
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tmp_max_len = args.max_query_len
-    clip_model, _ = clip.load("ViT-B/32", device=device, jit=False, txt_length=tmp_max_len)
+    clip_model, _ = clip.load("../clip_weights/ViT-B-32.pt", device=device, jit=False, txt_length=tmp_max_len)
+    # clip_model, _ = clip.load("ViT-B-32", device=device, jit=False, txt_length=tmp_max_len)
     clip_model.eval()
-    ###############
 
     train_time = 0
     start_time = time.time()
@@ -211,7 +195,6 @@ def main(args):
             if i == 0: val_acc = mIoU 
             elif i == 1: testA_acc = mIoU 
             else: testB_acc = mIoU 
-        # save_checkpoint(epoch,model_without_ddp,optimizer,scheduler,logger,args, f'ckpt_320_epoch_{epoch}.pth') #### 
         if val_acc > best['val_acc'] and local_rank==0:
             if os.path.exists(best['path']):
                 print('remove ', best['path'])
@@ -233,33 +216,32 @@ def main(args):
             best['hit'] = hit 
         print(best)
 
-        if local_rank == 0 and args.board_folder is not None:
+        if local_rank == 0:
             writer.add_scalar('test/mIoU', val_acc, epoch)
             writer.add_scalar('test/hit', hit, epoch)
             writer.add_scalar('test/oIoU', oIoU, epoch)
     
-    # ############ validate on the train dataset
-    # print()
-    # print()
-    # last_trainset = ReferDataset(refer_data_root=args.refer_data_root,
-    #                         dataset=args.dataset,
-    #                         split='train',
-    #                         splitBy=args.splitBy,
-    #                         image_transforms=get_transform(args.size, train=False),
-    #                         eval_mode=True,
-    #                         size=args.size,
-    #                         bert_tokenizer=args.bert_tokenizer)
-    # val_train_loader = DataLoader(last_trainset,
-    #                         batch_size=1,
-    #                         num_workers=2,
-    #                         pin_memory=True, 
-    #                         sampler=val_sampler)
-    # print('loading ', best['path'])
-    # load_pretrained_checkpoint(best['path'], model_without_ddp)
-    # oIoU_1, mIoU_1, hit_1 = validate(args, val_train_loader, model, local_rank)
-    # print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
-    # print(best)
-    # # # ############ validate on the train dataset, with prms strategy 
+    print()
+    print()
+    last_trainset = ReferDataset(refer_data_root=args.refer_data_root,
+                            dataset=args.dataset,
+                            split='train',
+                            splitBy=args.splitBy,
+                            image_transforms=get_transform(args.size, train=False),
+                            eval_mode=True,
+                            size=args.size,
+                            bert_tokenizer=args.bert_tokenizer)
+    val_train_loader = DataLoader(last_trainset,
+                            batch_size=1,
+                            num_workers=2,
+                            pin_memory=True, 
+                            sampler=val_sampler)
+    print('loading ', best['path'])
+    load_pretrained_checkpoint(best['path'], model_without_ddp)
+    oIoU_1, mIoU_1, hit_1 = validate(args, val_train_loader, model, local_rank)
+    print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
+    print(best)
+    # # #########
     # print()
     # print()
     # print('--------same sents--------')
@@ -270,7 +252,7 @@ def main(args):
     # print('Validat on the train split (same sents): ', oIoU, mIoU, hit)
     # print('Validat on the train split: ', oIoU_1, mIoU_1, hit_1)
     # print(best)
-    # # # ##################
+    # # ##################
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -278,8 +260,28 @@ def main(args):
     logger.info('Training + testing time {}'.format(total_time_str))
 
 
-from loss.clip_loss import clip_forward
+def clip_forward(clip_model, images, tokenized_text):
+    image_features = clip_model.encode_image(images)
+    _, text_features = clip_model.encode_text(tokenized_text)
 
+    # normalized features
+    image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+    text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+
+    N, C = image_features.size()
+    image_features = image_features.reshape(N, 1, C)
+    N, C = text_features.size()
+    text_features = text_features.reshape(N, C, 1)
+
+    similarity = torch.matmul(image_features, text_features)
+
+    return similarity
+
+def MaxLoss(x):
+    margin = 0
+    weights = 1
+    x = x.clamp(0.0001, 0.9999)
+    return -(torch.log(x + margin) * weights).mean()
 
 def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteration=0, clip_model=None, lr_scheduler=None):
     num_steps=len(train_loader)
@@ -292,12 +294,21 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
     end=time.time()
 
     max_iter = int(num_steps * args.epoch) 
-
+    # print('='*20, ',  max_iter = ', max_iter)
     clip_input_size = 224 
+    l1, l2, l3, l4, l5 = torch.tensor(0), torch.tensor(0), torch.tensor(0), torch.tensor(0), torch.tensor(0)
 
     for idx,(samples, targets) in enumerate(train_loader):
         word_ids = samples['word_ids'].squeeze(1)
         word_masks = samples['word_masks']#.squeeze(1)
+        try:
+            word_ids_gpt = samples['word_ids_gpt'].squeeze(1)
+            word_masks_gpt = samples['word_masks_gpt']#.squeeze(1)
+            word_ids_gpt = word_ids_gpt.cuda(local_rank, non_blocking=True)
+            word_masks_gpt = word_masks_gpt.cuda(local_rank, non_blocking=True)
+        except:
+            word_ids_gpt = None
+            word_masks_gpt = None 
         img = samples['img'].cuda(local_rank,non_blocking=True)
         target = targets['target'].cuda(local_rank,non_blocking=True)
         bbox = targets['boxes'].cuda(local_rank,non_blocking=True) 
@@ -308,7 +319,10 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
 
         labels = torch.eye(B).cuda()  
 
-        cls, _, seg_final_out, sig_out,  _ = model(img, word_ids)  
+        if args.mode != 'clip':
+            cls, _, _, sig_out, _ = model(img, raw_sentences)  
+        else:
+            cls, _, _, sig_out, _ = model(img, word_ids)  
 
         if img.shape[2] != clip_input_size:
             cam_224 = F.interpolate(sig_out, (clip_input_size, clip_input_size), mode='bilinear', align_corners=True)
@@ -323,33 +337,34 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
             bg_224_eval.append((1 - cam_224[i]) * img_224[i])
         fg_224_eval = torch.stack(fg_224_eval, dim=0)
         bg_224_eval = torch.stack(bg_224_eval, dim=0)
-        fg_loss = -(torch.log(clip_forward(clip_model, fg_224_eval, word_ids))).mean()
+        fg_loss = MaxLoss(clip_forward(clip_model, fg_224_eval, word_ids))
         
         if args.negative_samples > 0:
             neg_phrases = samples['neg_word_ids'].cuda()
-            try:
-                image_features = clip_model.encode_image(fg_224_eval)
-                neg_loss = torch.tensor(.0, requires_grad=True, device='cuda:0') 
-                for i_ in range(B):
-                    _, text_features = clip_model.encode_text(neg_phrases[i_])
-                    image_feature = image_features[i_].reshape(1, -1)
-                    image_feature = image_feature / image_feature.norm(dim=-1, keepdim=True)
-                    text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-                    neg_score = torch.matmul(image_feature, text_features.transpose(0,1))
-                    neg_loss = neg_loss + (-(torch.log(1 - neg_score)).mean())
-                neg_loss /= B 
-            except:
-                import pdb 
-                pdb.set_trace()
-
+            image_features = clip_model.encode_image(fg_224_eval)
+            cbs_loss = torch.tensor(.0, requires_grad=True, device='cuda:0') 
+            for i_ in range(B):
+                _, text_features = clip_model.encode_text(neg_phrases[i_])
+                image_feature = image_features[i_].reshape(1, -1)
+                image_feature = image_feature / image_feature.norm(dim=-1, keepdim=True)
+                text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+                neg_score = torch.matmul(image_feature, text_features.transpose(0,1))
+                cbs_loss = cbs_loss + (-(torch.log(1 - neg_score)).mean())
+            cbs_loss /= B 
         cls_loss = F.multilabel_soft_margin_loss(cls, labels)
         
-        l1 = fg_loss
-        l2 = neg_loss  
-        l3 = cls_loss  
+        l1 = fg_loss 
+        l4 = cls_loss 
 
-        loss = l1 * args.w1 + l2 * args.w2 + l3 * args.w3
+        if args.negative_samples > 0:
+            l5 = cbs_loss 
+        else:
+            l5 = torch.tensor(0)
 
+        loss = l1 * args.w1 + l2 * args.w2 + l3 * args.w3 + l4 * args.w4 + l5 * args.w5 
+
+        # Synchronizes all processes.
+        # all process statistic
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -358,15 +373,17 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
 
         torch.cuda.synchronize()
 
-        if local_rank == 0 and args.board_folder is not None:
+        if local_rank == 0:
             lr = optimizer.param_groups[0]['lr']
             writer.add_scalar('optim/lr', lr, iteration)
             writer.add_scalar('train/loss', loss.data.cpu().numpy(), iteration)
             writer.add_scalar('train/l1', l1.data.cpu().numpy(), iteration)
             writer.add_scalar('train/l2', l2.data.cpu().numpy(), iteration)
             writer.add_scalar('train/l3', l3.data.cpu().numpy(), iteration)
+            writer.add_scalar('train/l4', l4.data.cpu().numpy(), iteration)
+            writer.add_scalar('train/l5', l5.data.cpu().numpy(), iteration)
+            # writer.add_scalar('train/logit_scale', logit_scale.data.cpu().numpy(), iteration)
 
-        # measure time
         loss_meter.update(loss.item(), target.size(0))
         batch_time.update(time.time()-end)
         end=time.time()
@@ -383,6 +400,8 @@ def train_one_epoch(train_loader,model,optimizer,epoch,local_rank,args, iteratio
                 f'l1: {l1:.4f} | '
                 f'l2: {l2:.4f} | '
                 f'l3: {l3:.4f} | '
+                f'l4: {l4:.4f} | '
+                f'l5: {l5:.4f} | '
                 f'time: {batch_time.val:.4f} ({batch_time.avg:.4f}) | '
                 f'mem: {memory_used:.0f}MB || '
                 f'all_eta: {datetime.timedelta(seconds=int(all_etas))}')
@@ -404,7 +423,7 @@ if __name__=="__main__":
     if args.vis_out is not None and not os.path.exists(args.vis_out):
         os.mkdir(args.vis_out)
 
-    print(f'[{args.w1}, {args.w2}, {args.w3}]')
+    # print(f'[{args.w1}, {args.w2}, {args.w3}, {args.w4}, {args.w5}]')
     if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
         rank=int(os.environ['RANK'])
         world_size=int(os.environ['WORLD_SIZE'])
@@ -422,9 +441,8 @@ if __name__=="__main__":
     else:
         logger = create_logger()
     
-    if args.board_folder is not None:
-        global writer 
-        writer = SummaryWriter(args.board_folder)
+    global writer 
+    writer = SummaryWriter(args.board_folder)
 
     main(args) 
 

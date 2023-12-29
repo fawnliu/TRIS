@@ -10,7 +10,7 @@ CUDA_VISIBLE_DEVICES=0 python train_stage1.py \
     --bert_tokenizer clip \
     --backbone clip-RN50 \
     --max_query_len 20 \
-    --negative_samples 6 \
+    --negative_samples 3 \
     --output ./weights/stage1/refcocog_umd \
     --board_folder ./output/board \
     2>&1 | tee logs/train_${now}_stage1_refcocog_umd.txt 
