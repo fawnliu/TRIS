@@ -42,7 +42,7 @@ class TRIS(nn.Module):
             self.attn_fusion = bilateral_prompt(args.hidden_dim, lan_chans=args.hidden_dim) 
 
     def trainable_parameters(self):
-        newly_add_params = [self.vis_project, self.lan_project, self.logit_scale]
+        newly_add_params = [self.vis_project, self.lan_project]
         try:
             newly_add_params.append(self.attn_fusion)
         except:
