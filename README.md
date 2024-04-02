@@ -13,10 +13,10 @@ Official PyTorch implementation of **TRIS**, from the following paper:
 
 
 ## Environment
-
-```bash
+We recommend running the code using <b>Pytorch 1.13.1</b> or higher version.
+<!-- ```bash
 conda env create -f environment.yml
-```
+``` -->
 
 ## Dataset 
 ### RefCOCO/+/g
