@@ -55,6 +55,8 @@ If you want to generate referit annotations by yourself, refer to [MG](https://g
 
 ## Evaluation
 
+Note that we use <b>mIoU</b> to evaluate the accuracy of the generated masks.
+
 1. Create the `./weights` directory 
 ```shell
 mkdir ./weights
