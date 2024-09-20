@@ -123,15 +123,32 @@ python validate.py   --batch_size 1   --size 320   \
 cd IRNet
 
 dir=../output
-CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py   --cam_out_dir $dir/refcocog_umd/cam   --ir_label_out_dir $dir/refcocog_umd/ir_label   --ins_seg_out_dir $dir/refcocog_umd/ins_seg   --train_list $dir/refcocog_umd/refcocog_train_names.json   --cam_eval_thres 0.15   --work_space output_refer/refcocog_umd   --num_workers 8   --irn_batch_size 96   --cam_to_ir_label_pass True   --train_irn_pass True   --make_ins_seg_pass True 
+## single GPU
+CUDA_VISIBLE_DEVICES=0 python run_sample_refer.py \
+    --voc12_root ../../../work/datasets/train2014 \
+    --cam_out_dir $dir/refcocog_umd/cam \
+    --ir_label_out_dir $dir/refcocog_umd/ir_label \
+    --ins_seg_out_dir $dir/refcocog_umd/ins_seg \
+    --cam_eval_thres 0.15 \
+    --work_space output_refer/refcocog_umd \
+    --train_list $dir/refcocog_umd/refcocog_train_names.json \
+    --num_workers 2 \
+    --irn_batch_size 24 \
+    --cam_to_ir_label_pass True \
+    --train_irn_pass True \
+    --make_ins_seg_pass True \
+
+## the code can run faster if more GPUs are available
+#CUDA_VISIBLE_DEVICES=0,1,2,3 python run_sample_refer.py   --cam_out_dir $dir/refcocog_umd/cam   --ir_label_out_dir $dir/refcocog_umd/ir_label   --ins_seg_out_dir $dir/refcocog_umd/ins_seg   --train_list $dir/refcocog_umd/refcocog_train_names.json   --cam_eval_thres 0.15   --work_space output_refer/refcocog_umd   --num_workers 8   --irn_batch_size 96   --cam_to_ir_label_pass True   --train_irn_pass True   --make_ins_seg_pass True 
 ```
 
 4. Train Step2 network using the generated pseudo masks in `output/refcocog_umd/ins_seg` indicated by the args `--pseudo_path`. 
 
 ```bash
 cd ../
+bash scripts/train_stage2.sh
 
-python train_stage2.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --bert_tokenizer clip  --backbone clip-RN50  --max_query_len 20  --epoch 15  --pseudo_path output/refcocog_umd/ins_seg  --output ./weights/stage2/pseudo_refcocog_umd
+## python train_stage2.py  --batch_size 48  --size 320  --dataset refcocog  --splitBy umd  --test_split val  --bert_tokenizer clip  --backbone clip-RN50  --max_query_len 20  --epoch 15  --pseudo_path output/refcocog_umd/ins_seg  --output ./weights/stage2/pseudo_refcocog_umd
 ```
 
 ## Acknowledgement
