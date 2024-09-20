@@ -110,7 +110,11 @@ The response maps are saved in `./output/refcocog_umd/cam/` indicated by the arg
 ## path to save response maps and pseudo labels
 dir=./output
 
-python validate.py   --batch_size 1   --size 320   --dataset refcocog   --splitBy umd   --test_split train   --max_query_len 20   --output ./weights/refcocog_umd   --resume --pretrain  ckpt.pth   --cam_save_dir $dir/refcocog_umd/cam/   --name_save_dir $dir/refcocog_umd  --eval --prms 
+python validate.py   --batch_size 1   --size 320   \
+    --dataset refcocog   --splitBy umd   --test_split train   \
+    --max_query_len 20   --output ./weights/   --resume \
+    --pretrain  stage1_refcocog_umd.pth   --cam_save_dir $dir/refcocog_umd/cam/   \
+    --name_save_dir $dir/refcocog_umd  --eval --prms  --save_cam 
 ```
 
 3. Train IRNet and generate pseudo masks.
