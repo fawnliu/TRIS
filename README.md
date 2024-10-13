@@ -3,7 +3,7 @@
 Official PyTorch implementation of **TRIS**, from the following paper:
 
 [Referring Image Segmentation Using Text Supervision](https://arxiv.org/abs/2308.14575). ICCV 2023. \
-[Fang Liu](https://scholar.google.com/citations?user=cBFup5QAAAAJ&hl=en&oi=sra)\*, [Yuhao Liu](https://scholar.google.com/citations?user=eHWiGU8AAAAJ&hl=en&oi=sra)\*, [Yuqiu Kong](https://scholar.google.com/citations?user=nKrhk4UAAAAJ&hl=en&oi=sra), [Ke Xu](https://scholar.google.com/citations?user=2meBhbQAAAAJ&hl=en&oi=sra), [Lihe Zhang](https://scholar.google.com/citations?user=XGPdQbIAAAAJ&hl=en&oi=ao), [Baocai Yin](https://scholar.google.com/citations?user=uXtYy_8AAAAJ&hl=en&oi=sra), [Gerhard Hancke](https://scholar.google.com/citations?user=C2iR3xUAAAAJ&hl=en&oi=ao), [Rynson Lau](https://www.cs.cityu.edu.hk/~rynson/)
+[Fang Liu](https://scholar.google.com/citations?user=cBFup5QAAAAJ&hl=en&oi=sra)\*, [Yuhao Liu](https://yuhaoliu7456.github.io/)\*, [Yuqiu Kong](https://scholar.google.com/citations?user=nKrhk4UAAAAJ&hl=en&oi=sra), [Ke Xu](https://scholar.google.com/citations?user=2meBhbQAAAAJ&hl=en&oi=sra), [Lihe Zhang](https://scholar.google.com/citations?user=XGPdQbIAAAAJ&hl=en&oi=ao), [Baocai Yin](https://scholar.google.com/citations?user=uXtYy_8AAAAJ&hl=en&oi=sra), [Gerhard Hancke](https://scholar.google.com/citations?user=C2iR3xUAAAAJ&hl=en&oi=ao), [Rynson Lau](https://www.cs.cityu.edu.hk/~rynson/)
 
 
 --- 
